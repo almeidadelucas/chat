@@ -137,10 +137,14 @@ int main() {
                     printf("Cliente %s desconectou.\n", clients[i].nickname);
                     char notification[BUFFER_SIZE + 100];
                     sprintf(notification, "Cliente %s desconectou.\n", clients[i].nickname);
-                    broadcast_tcp(notification, sockfd);
+                    // Envio da notificação de cliente desconectado
+                    broadcast_udp(notification, &clients[i].addr, udp_sock);
 
+                    // Fechamento do socket
                     close(sockfd);
                     FD_CLR(sockfd, &all_fds);
+
+                    // Remoção do cliente da lista
                     remove_client(sockfd);
                 } else {
                     buffer[bytes_received] = '\0';
@@ -148,6 +152,7 @@ int main() {
                     char message[BUFFER_SIZE + 100];
                     int color_index = i % 6;
 
+                    // Envio da mensagem recebida para os demais clientes
                     sprintf(message, "%s[%s]:\033[0m %s", colors[color_index], clients[i].nickname, buffer);
                     printf("%s", message);
                     broadcast_tcp(message, sockfd);
