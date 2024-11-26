@@ -102,9 +102,15 @@ int main() {
             char nickname[32];
             recv(new_sock, nickname, sizeof(nickname), 0);
 
+            // Recebe o endereço UDP do cliente
+            char udp_port[16];
+            recv(new_sock, udp_port, sizeof(udp_port), 0);
+            
             // Adiciona o cliente à lista
             clients[client_count].sockfd = new_sock;
             clients[client_count].addr = client_addr;
+            // Configura o endereço UDP do cliente
+            clients[client_count].addr.sin_port = htons(atoi(udp_port));
             strcpy(clients[client_count].nickname, nickname);
             client_count++;
 

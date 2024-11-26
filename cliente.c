@@ -45,6 +45,16 @@ int main() {
     tcp_sock = socket(AF_INET, SOCK_STREAM, 0);
     udp_sock = socket(AF_INET, SOCK_DGRAM, 0);
 
+    struct sockaddr_in local_addr;
+    local_addr.sin_family = AF_INET;
+    local_addr.sin_port = htons(0); // Porta dinâmica
+    local_addr.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(udp_sock, (struct sockaddr*)&local_addr, sizeof(local_addr)) < 0) {
+        perror("Erro ao vincular socket UDP");
+        exit(EXIT_FAILURE);
+    }
+
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(8080);
     server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -56,6 +66,13 @@ int main() {
     fgets(nickname, sizeof(nickname), stdin);
     nickname[strcspn(nickname, "\n")] = '\0';
     send(tcp_sock, nickname, strlen(nickname), 0);
+
+    socklen_t len = sizeof(local_addr);
+    getsockname(udp_sock, (struct sockaddr*)&local_addr, &len); // Resgata a porta atribuída dinamicamente
+
+    char udp_port[16];
+    sprintf(udp_port, "%d", ntohs(local_addr.sin_port)); // Porta atribuída dinamicamente
+    send(tcp_sock, udp_port, strlen(udp_port), 0);
 
     pthread_t tcp_thread, udp_thread;
     pthread_create(&tcp_thread, NULL, receive_tcp, &tcp_sock);
